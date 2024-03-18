@@ -37,7 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'playlist_app'
+    'playlist_app',
+    'django_bootstrap5',
 ]
 
 # Add support for authenticating users
