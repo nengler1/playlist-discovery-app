@@ -1,13 +1,52 @@
 <!-- inherit from base.html-->
 {% extends "playlist_app/base_template.html" %}
+{% load static %}
 
 
 <!-- Replace block content in base_template.html -->
 {% block content %}
 <h1>Music Playlist Discovery</h1>
 
+<!--
+<a href="" class="btn btn-primary">View</a>
+<a href="{% url 'create-playlist' %}" class="btn btn-primary">Create Playlist</a>
+-->
 
-<h2>More to come!</h2>
-
+<br>
+<h2>Playlist List</h2>
+    {% for playlist in playlist_list %}
+    <ul class="list-unstyled">
+        <div class="shadow card w-50">
+            <div class="card-body">
+                <li>
+                    <div class="row g-0">
+                        {% if playlist.cover %}
+                            <div class="col-md-4">
+                                <img src="{{ playlist.cover }}" class="rounded card-img" alt="{{ playlist.title }} Cover" style="width: 80%;">
+                            </div>
+                        {% else %}
+                            <p>No cover image available</p>
+                        {% endif %}
+                        <div class="col-md-8">
+                            <h2 class="card-title">{{ playlist.title }}</h2>
+                            <p class="card-text">
+                                <strong>Genres:</strong>
+                                {% for genre in playlist.genres.all %}
+                                    {{ genre.name }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                            </p>
+                            <p class="card-text">
+                                <strong>Artists:</strong>
+                                {% for artist in playlist.artists.all %}
+                                    {{ artist.name }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                            </p>
+                        </div>
+                    </div>
+                </li>
+            </div>
+        </div>
+    </ul>
+    {% endfor %}
 
 {% endblock %}

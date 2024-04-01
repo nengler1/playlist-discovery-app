@@ -1,0 +1,13 @@
+<!-- inherit from base.html-->
+{% extends "playlist_app/base_template.html" %}
+
+<!-- Replace block content in base_template.html -->
+{% block content %}
+    <form method="POST" action="">
+        {% csrf_token %}
+        <table>
+        {{ form.as_table }}
+        </table>
+        <button type="submit">Submit</button>
+    </form>
+{% endblock %}
