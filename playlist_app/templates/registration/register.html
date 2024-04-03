@@ -1,0 +1,12 @@
+{% extends 'portfolio_app/base_template.html' %}
+
+{% block content %}
+  <h2>UCCS Student Portfolio Registration</h2>
+
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" name="Create User" />
+  </form>
+  {{form.errors}}
+{% endblock %}
