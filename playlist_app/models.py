@@ -13,9 +13,9 @@ class Genre(models.Model):
 
 class Playlist(models.Model):
     title = models.CharField(max_length=200, blank=False)
-    artists = models.ManyToManyField(Artist)
-    genres = models.ManyToManyField(Genre)
-    cover = models.ImageField(upload_to='static/uploads/', null=True)
+    artists = models.ManyToManyField(Artist, default=None)
+    genres = models.ManyToManyField(Genre, default=None)
+    cover = models.ImageField(default='playlist_default.png')
 
     def __str__(self):
         return self.title

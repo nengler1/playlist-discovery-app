@@ -4,4 +4,4 @@ from .models import *
 class PlaylistForm(forms.ModelForm):
     class Meta:
         model = Playlist
-        fields = '__all__'
+        fields = ('title', 'artists', 'genres', 'cover',)

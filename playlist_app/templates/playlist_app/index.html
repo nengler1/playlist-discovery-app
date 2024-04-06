@@ -1,16 +1,12 @@
 <!-- inherit from base.html-->
 {% extends "playlist_app/base_template.html" %}
-{% load static %}
 
 
 <!-- Replace block content in base_template.html -->
 {% block content %}
 <h1>Music Playlist Discovery</h1>
 
-<!--
-<a href="" class="btn btn-primary">View</a>
-<a href="{% url 'create-playlist' %}" class="btn btn-primary">Create Playlist</a>
--->
+<a href="{% url 'create-playlist' %}" class="btn btn-success">Create Playlist</a><br>
 
 <br>
 <h2>Playlist List</h2>
@@ -22,25 +18,15 @@
                     <div class="row g-0">
                         {% if playlist.cover %}
                             <div class="col-md-4">
-                                <img src="{{ playlist.cover }}" class="rounded card-img" alt="{{ playlist.title }} Cover" style="width: 80%;">
+                                <img src="{{ playlist.cover.url }}" class="rounded card-img" alt="{{ playlist.title }} Cover" style="width: 80%;">
                             </div>
                         {% else %}
                             <p>No cover image available</p>
                         {% endif %}
                         <div class="col-md-8">
-                            <h2 class="card-title">{{ playlist.title }}</h2>
-                            <p class="card-text">
-                                <strong>Genres:</strong>
-                                {% for genre in playlist.genres.all %}
-                                    {{ genre.name }}{% if not forloop.last %}, {% endif %}
-                                {% endfor %}
-                            </p>
-                            <p class="card-text">
-                                <strong>Artists:</strong>
-                                {% for artist in playlist.artists.all %}
-                                    {{ artist.name }}{% if not forloop.last %}, {% endif %}
-                                {% endfor %}
-                            </p>
+                            <h2 class="card-title">Title: {{ playlist.title }}</h2>
+                            
+                            <a href="{{ playlist.get_absolute_url }}" class="btn btn-success">View Details</a>
                         </div>
                     </div>
                 </li>

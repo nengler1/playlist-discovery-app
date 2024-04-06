@@ -1,0 +1,18 @@
+<!-- inherit from base.html-->
+{% extends "playlist_app/base_template.html" %}
+
+<!-- Replace block content in base_template.html -->
+{% block content %}
+    <h1>Playlist List</h1>
+    {% if playlist_list %}
+        <ul>
+            {% for playlist in playlist_list %}
+                <li>
+                    <a href="{{ playlist.get_absolute_url }}">{{ playlist.title }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>There are no playlists.</p>
+    {% endif %}
+{% endblock %}
