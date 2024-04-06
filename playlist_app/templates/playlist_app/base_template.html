@@ -1,4 +1,5 @@
 {% load django_bootstrap5 %}
+{% load static %}
 
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
@@ -6,6 +7,7 @@
    <title>Music Discovery App</title>
    <meta charset="utf-8">
    <meta name="viewport" content="width=device-width, initial-scale=1">
+   <link rel="icon" type="image/png" href="/uploads/icon/musical-note-256.png" sizes="16x16" />
    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
  </head>
 
@@ -16,6 +18,7 @@
 
      <!-- Navbar-->
      <nav class="navbar navbar-expand-lg bg-primary bg-gradient">
+      <img src="/uploads/icon/musical-note-256.png" class="img-fluid" width="50" height="50">
        <div class="container-fluid">
         <a class="navbar-brand">Playlist Discovery</a>
          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">

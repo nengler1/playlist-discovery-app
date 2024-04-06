@@ -15,17 +15,32 @@ def create_playlist(request):
     if request.method == 'POST':
         print("FILES", request.FILES)
         print("POST", request.POST)
-        print("COVER", request.FILES['cover'])
         form = PlaylistForm(request.POST, request.FILES)
         print(form.__dict__)
         if form.is_valid():
             playlist = form.save(commit=False)
-            print("INSIDE VALID")
             playlist.save()
             form.save_m2m()
 
             return redirect('index')
     return render(request, 'playlist_app/create_playlist.html', {'form': form})
+
+def update_playlist(request, pk):
+    playlist = Playlist.objects.get(id=pk)
+
+    if request.method == 'POST':
+        form = PlaylistForm(request.POST, request.FILES, instance=playlist)
+        if form.is_valid():
+            saved_playlist = form.save(commit=False)
+            saved_playlist.save()
+            form.save_m2m()
+
+            return redirect('playlist-detail', pk)
+    else:
+        form = PlaylistForm(instance=playlist)
+
+    return render(request, 'playlist_app/update_playlist.html', 
+                  {'form': form, 'pk':pk})
 
 def delete_playlist(request, pk):
     playlist = Playlist.objects.get(id=pk)

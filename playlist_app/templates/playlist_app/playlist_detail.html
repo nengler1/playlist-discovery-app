@@ -5,6 +5,8 @@
 <!-- Replace block content in base_template.html -->
 {% block content %}
     <h1>Playlist Details</h1>
+    <h2>{{ playlist.cover.url }}</h2>
+    <h2>{{ playlist.cover }}</h2>
     {% if playlist.cover %}
         <div class="col-md-4">
             <p class="fs-5 text-break"><strong>Cover:</strong></p>
@@ -25,5 +27,6 @@
             {{ artist.name }}{% if not forloop.last %}, {% endif %}
         {% endfor %}
     </p>
+    <a href="{% url 'update-playlist' playlist.pk %}" class="btn btn-primary">Update Playlist</a>
     <a href="{% url 'delete-playlist' playlist.pk %}" class="btn btn-danger">Delete Playlist</a>
 {% endblock %}
