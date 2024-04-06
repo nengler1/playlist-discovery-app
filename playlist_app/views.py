@@ -13,10 +13,7 @@ def index(request):
 def create_playlist(request):
     form = PlaylistForm()
     if request.method == 'POST':
-        print("FILES", request.FILES)
-        print("POST", request.POST)
         form = PlaylistForm(request.POST, request.FILES)
-        print(form.__dict__)
         if form.is_valid():
             playlist = form.save(commit=False)
             playlist.save()
