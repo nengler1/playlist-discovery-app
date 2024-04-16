@@ -7,7 +7,7 @@ from playlist_app.forms import *
 # Create your views here.
 def index(request):
     playlist_list = Playlist.objects.all()
-    print('Playlist list', playlist_list)
+    #print('Playlist list', playlist_list)
     return render(request, 'playlist_app/index.html', {'playlist_list':playlist_list})
 
 def create_playlist(request):
