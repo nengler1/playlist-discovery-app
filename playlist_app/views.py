@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.views import generic
+from django.contrib import messages
 from playlist_app.models import *
 from playlist_app.forms import *
 
@@ -9,6 +10,22 @@ def index(request):
     playlist_list = Playlist.objects.all()
     #print('Playlist list', playlist_list)
     return render(request, 'playlist_app/index.html', {'playlist_list':playlist_list})
+
+def registerPage(request):
+    form = CreateUserForm()
+    if request.method == 'POST':
+        form = CreateUserForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            username = form.cleaned_data.get('username')
+            playlist_user = Playlist.objects.create(user=user,)
+            playlist_user.save()
+
+            messages.success(request, 'Account was created for ' + username)
+            return redirect('login')
+        
+    return render(request, 'registration/register.html', {'form':form})
+            
 
 def create_playlist(request):
     form = PlaylistForm()

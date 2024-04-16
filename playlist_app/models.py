@@ -1,5 +1,6 @@
 from django.db import models
 from django.urls import reverse
+from django.contrib.auth.models import User
 
 class Artist(models.Model):
     name = models.CharField(max_length=100)
@@ -16,6 +17,7 @@ class Playlist(models.Model):
     artists = models.ManyToManyField(Artist, default=None)
     genres = models.ManyToManyField(Genre, default=None)
     cover = models.ImageField(default='playlist_default.png')
+    user = models.OneToOneField(User, null=True, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.title
