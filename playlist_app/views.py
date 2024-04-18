@@ -91,6 +91,7 @@ def playlist_detail(request, pk):
     return render(request, "playlist_app/playlist_detail.html", 
                   {'playlist':playlist})
 
+
 def spotify_login(request):
     sp_oauth = SpotifyOAuth(
         client_id=CLIENT_ID,
@@ -142,7 +143,7 @@ def get_top_artists(request):
         response = sp.current_user_top_artists(
             limit=15,
             offset=0,
-            time_range="long_term"
+            time_range="short_term"
         )
 
         top_artists = response["items"]

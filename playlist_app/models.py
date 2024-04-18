@@ -7,14 +7,6 @@ from django.dispatch import receiver
 from django.db.models.signals import post_save
 from guardian.shortcuts import assign_perm
 
-class Token(models.Model):
-    user = models.CharField(unique=True, max_length=100)
-    created_at = models.DateTimeField(auto_now_add=True)
-    access_token = models.CharField(max_length=500)
-    refresh_token = models.CharField(max_length=500)
-    expires_in = models.DateTimeField()
-    token_type = models.CharField(max_length=100)
-
 class Artist(models.Model):
     name = models.CharField(max_length=100)
     def __str__(self):
