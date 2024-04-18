@@ -154,13 +154,3 @@ LOGIN_REDIRECT_URL='/'
 
 GUARDIAN_RAISE_403 = False
 GUARDIAN_RENDER_403 = True
-
-# REST Framework
-
-REST_FRAMEWORK = {
-    # Use Django's standard `django.contrib.auth` permissions,
-    # or allow read-only access for unauthenticated users.
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
-    ]
-}

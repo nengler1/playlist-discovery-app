@@ -2,9 +2,9 @@ from .models import Token
 from .credentials import *
 from django.utils import timezone
 from datetime import timedelta
-from requests import post
+from requests import post, get
 
-BASE_URL = "https://api.spotify.com/v1/search"
+BASE_URL = "https://api.spotify.com/v1/me"
 
 # Check Tokens
 def check_tokens(session_id):
@@ -45,7 +45,7 @@ def is_spotify_authenticated(session_id):
         return True
     return False
 
-def refresh_token_func(session_id):
+def refresh_token(session_id):
     refresh_token = check_tokens(session_id).refresh_token
 
     response = post('https://accounts.spotify.com/api/token', data={
@@ -66,3 +66,20 @@ def refresh_token_func(session_id):
         expires_in = expires_in,
         token_type = token_type
     )
+
+def spotify_request_execution(session_id, endpoint):
+    token = check_tokens(session_id)
+    headers = {'Content-Type':'application/json', 'Authorization':'Bearer ' + token.access_token}
+    
+    # Get data from top artists
+    response = get(BASE_URL + endpoint, {}, headers=headers)
+
+    if response:
+        print(response)
+    else:
+        print("No Response!")
+
+    try:
+        return response.json()
+    except:
+        return {'Error': 'Issue with request'}

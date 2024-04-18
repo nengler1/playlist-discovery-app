@@ -14,9 +14,12 @@ from guardian.decorators import permission_required_or_403
 # API
 from rest_framework.views import APIView
 from rest_framework import status, response
+from rest_framework.response import Response
 from requests import Request, post
 from .credentials import *
 from .extras import *
+
+APP_URL = "http://127.0.0.1:8000"
 
 # Create your views here.
 def index(request):
@@ -93,8 +96,8 @@ def playlist_detail(request, pk):
                   {'playlist':playlist})
 
 class AuthenticationURL(APIView):
-    def get(self, request, format=None):
-        scopes = "user-library-read"
+    def get(self, request):
+        scopes = "user-top-read"
         url = Request('GET', 'https://accounts.spotify.com/authorize', params={
             'scope':scopes,
             'response_type':'code',
@@ -104,7 +107,7 @@ class AuthenticationURL(APIView):
 
         return HttpResponseRedirect(url)
     
-def spotify_redirect(request, format=None):
+def spotify_redirect(request):
     code = request.GET.get('code')
     error = request.GET.get('error')
 
@@ -138,23 +141,64 @@ def spotify_redirect(request, format=None):
     )
 
     # Create a redirect url
-    redirect_url = ''
+    redirect_url = APP_URL+f"/api_playlist?key={authKey}"
     return HttpResponseRedirect(redirect_url)
 
 # Checking whether the user has been authenticated by spotify
 class CheckAuthentication(APIView):
-    def get(self, request, format=None):
+    def get(self, request):
         key = self.request.session.session_key
 
-        if not self.request.session.exits(key):
+        if not self.request.session.exists(key):
             self.request.session.create()
             key = self.request.session.session_key
 
         auth_status = is_spotify_authenticated(key)
 
         if auth_status:
-            redirect_url = ''
+            redirect_url = APP_URL+f"/api_playlist?key={key}"
             return HttpResponseRedirect(redirect_url)
         else:
-            redirect_url = ''
+            redirect_url = APP_URL+"/api_playlist"
             return HttpResponseRedirect(redirect_url)
+
+class APIPlaylist(APIView):
+    kwarg = "key"
+    def get(self, request):
+        key = request.GET.get(self.kwarg)
+        token = Token.objects.filter(user=key)
+        print(token)
+
+        # Creating endpoint
+        endpoint = '/top/artists'
+        response = spotify_request_execution(key, endpoint)
+
+        if 'error' in response or 'item' not in response:
+            return Response({}, status=status.HTTP_204_NO_CONTENT)
+        
+
+        artists = ''
+        genres = ''
+        image_urls = ''
+        for i, item in enumerate(response.get('item')):
+            if i > 0:
+                item += ', '
+            artist = item.get('name')
+            genre = item.get('genres')
+            artists += artist
+            genres += genre
+
+            for i, image in enumerate(item.get('images')):
+                if i > 0:
+                    image += ', '
+                    url = image.get('url')
+                    image_urls += url
+        
+        api_playlist = {
+            "artists":artist,
+            "genres":genres,
+            "image_urls":image_urls
+        }
+
+        print("API PLAYLIST!", api_playlist)
+        return Response(api_playlist, status=status.HTTP_200_OK)
