@@ -41,13 +41,12 @@ class SeleniumTests(LiveServerTestCase):
     def testPlaylistDetail(self):
         self.browser.get(self.live_server_url)
         self.browser.find_element(By.XPATH, "//div[@class='col-md-8']//a[@href='/playlist/1']").click()
-    
+
     # run specified test: 
     # python manage.py test playlist_app.tests.tests.SeleniumTests.testCreatePlaylist
     def testCreatePlaylist(self):
         self.browser.get(self.live_server_url)
-        self.browser.find_element(By.NAME, "create_playlist_btn").click()
-        time.sleep(1)
+        self.browser.find_element(By.LINK_TEXT, "Create Playlist").click()
         self.browser.find_element(By.NAME, "title").send_keys("Selenium Title Test")
 
         # Clicking Artists and Genres
@@ -57,10 +56,7 @@ class SeleniumTests(LiveServerTestCase):
         self.browser.find_element(By.XPATH, "//select[@id='id_genres']/option[2]").click()
 
         # Browsing image file
-        self.browser.find_element(By.XPATH, "//input[@id='id_cover']").send_keys("C:\\Users\\natha\\Downloads\\selenium_test.jpg")
-        time.sleep(1)
+        self.browser.find_element(By.ID, "id_cover").send_keys("C:\\Users\\natha\\Downloads\\selenium_test.jpg")
 
         #submitting
-        self.browser.find_element(By.XPATH, "//button[@type='submit']").submit()
-        time.sleep(1)
-        self.browser.quit()
+        self.browser.find_element(By.XPATH, "//button[@type='submit']").click()
