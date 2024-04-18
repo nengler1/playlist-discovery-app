@@ -5,6 +5,12 @@ from django.contrib import messages
 from playlist_app.models import *
 from playlist_app.forms import *
 
+# Authentication
+from django.contrib.auth.decorators import login_required
+from .decorators import allowed_users
+from guardian.shortcuts import assign_perm, get_objects_for_user
+from guardian.decorators import permission_required_or_403
+
 # Create your views here.
 def index(request):
     playlist_list = Playlist.objects.all()
@@ -27,7 +33,7 @@ def registerPage(request):
         
     return render(request, 'registration/register.html', {'form':form})
             
-
+@login_required(login_url='login')
 def create_playlist(request):
     form = PlaylistForm()
     if request.method == 'POST':
@@ -73,6 +79,8 @@ class PlaylistListView(generic.ListView):
     context_object_name = 'playlist_list'
     template_name = 'playlist_app/playlist_list.html'
 
-class PlaylistDetailView(generic.DetailView):
-    model = Playlist
-    template_name = 'playlist_app/playlist_detail.html'
+@login_required(login_url='login')
+def playlist_detail(request, pk):
+    playlist = Playlist.objects.get(id=pk)
+    return render(request, "playlist_app/playlist_detail.html", 
+                  {'playlist':playlist})

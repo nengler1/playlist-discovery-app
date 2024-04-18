@@ -39,11 +39,13 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'playlist_app',
     'django_bootstrap5',
+    'guardian',
 ]
 
 # Add support for authenticating users
 AUTHENTICATION_BACKENDS = [
-'django.contrib.auth.backends.ModelBackend',
+    'django.contrib.auth.backends.ModelBackend',
+    'guardian.backends.ObjectPermissionBackend',
 ]
 
 
@@ -145,3 +147,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_REDIRECT_URL='/'
+
+# Guardian
+
+GUARDIAN_RAISE_403 = False
+GUARDIAN_RENDER_403 = True
