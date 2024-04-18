@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
 from django.views import generic
 from django.contrib import messages
 from playlist_app.models import *
@@ -12,14 +12,10 @@ from guardian.shortcuts import assign_perm, get_objects_for_user
 from guardian.decorators import permission_required_or_403
 
 # API
-from rest_framework.views import APIView
-from rest_framework import status, response
-from rest_framework.response import Response
-from requests import Request, post
+import spotipy
 from .credentials import *
-from .extras import *
-
-APP_URL = "http://127.0.0.1:8000"
+from rest_framework.decorators import api_view
+from spotipy.oauth2 import SpotifyOAuth, SpotifyClientCredentials
 
 # Create your views here.
 def index(request):
@@ -95,110 +91,79 @@ def playlist_detail(request, pk):
     return render(request, "playlist_app/playlist_detail.html", 
                   {'playlist':playlist})
 
-class AuthenticationURL(APIView):
-    def get(self, request):
-        scopes = "user-top-read"
-        url = Request('GET', 'https://accounts.spotify.com/authorize', params={
-            'scope':scopes,
-            'response_type':'code',
-            'redirect_uri': REDIRECT_URI,
-            'client_id':CLIENT_ID
-        }).prepare().url
-
-        return HttpResponseRedirect(url)
-    
-def spotify_redirect(request):
-    code = request.GET.get('code')
-    error = request.GET.get('error')
-
-    if error:
-        return error
-    
-    response = post('https://accounts.spotify.com/api/token', data={
-        'grant_type': 'authorization_code',
-        'code':code,
-        'redirect_uri':REDIRECT_URI,
-        'client_id':CLIENT_ID,
-        'client_secret':CLIENT_SECRET
-    }).json()
-
-    access_token = response.get('access_token')
-    refresh_token = response.get('refresh_token')
-    expires_in = response.get('expires_in')
-    token_type = response.get('token_type')
-
-    authKey = request.session.session_key
-    if not request.session.exists(authKey):
-        request.session.create()
-        authKey = request.session.session_key
-
-    create_or_update_tokens(
-        session_id = authKey,
-        access_token = access_token,
-        refresh_token = refresh_token,
-        expires_in = expires_in,
-        token_type = token_type
+def spotify_login(request):
+    sp_oauth = SpotifyOAuth(
+        client_id=CLIENT_ID,
+        client_secret=CLIENT_SECRET,
+        redirect_uri=REDIRECT_URI,
+        scope='user-top-read'
     )
 
-    # Create a redirect url
-    redirect_url = APP_URL+f"/api_playlist?key={authKey}"
-    return HttpResponseRedirect(redirect_url)
+    print("\nSP_OAUTH OBJECT: ", sp_oauth, "\n")
 
-# Checking whether the user has been authenticated by spotify
-class CheckAuthentication(APIView):
-    def get(self, request):
-        key = self.request.session.session_key
+    url = sp_oauth.get_authorize_url()
+    print("URL:",url)
 
-        if not self.request.session.exists(key):
-            self.request.session.create()
-            key = self.request.session.session_key
+    return HttpResponseRedirect(url)
 
-        auth_status = is_spotify_authenticated(key)
+def spotify_redirect(request):
+    sp_oauth = SpotifyOAuth(
+        client_id=CLIENT_ID,
+        client_secret=CLIENT_SECRET,
+        redirect_uri=REDIRECT_URI,
+        scope='user-top-read'
+    )
 
-        if auth_status:
-            redirect_url = APP_URL+f"/api_playlist?key={key}"
-            return HttpResponseRedirect(redirect_url)
+    code = request.GET.get("code")
+
+    token_info = sp_oauth.get_access_token(code)
+    access_token = token_info["access_token"]
+    request.session["access_token"] = access_token
+
+    return HttpResponseRedirect("/spotify/top_artists/")
+
+@api_view(['GET'])
+def get_top_artists(request):
+    if request.method == 'GET':
+        access_token = request.session.get("access_token")
+        print('\nACCESS TOKEN:', access_token, '\n')
+    
+        sp = spotipy.Spotify(auth=access_token)
+
+        response = sp.me()
+
+        if response is not None:
+            print("\nAccess Token is valid.")
         else:
-            redirect_url = APP_URL+"/api_playlist"
-            return HttpResponseRedirect(redirect_url)
+            print("\nAccess Token is invalid or has expired.\n")
+        
+        username = sp.me()['display_name']
 
-class APIPlaylist(APIView):
-    kwarg = "key"
-    def get(self, request):
-        key = request.GET.get(self.kwarg)
-        token = Token.objects.filter(user=key)
-        print(token)
+        response = sp.current_user_top_artists(
+            limit=15,
+            offset=0,
+            time_range="long_term"
+        )
 
-        # Creating endpoint
-        endpoint = '/top/artists'
-        response = spotify_request_execution(key, endpoint)
+        top_artists = response["items"]
 
-        if 'error' in response or 'item' not in response:
-            return Response({}, status=status.HTTP_204_NO_CONTENT)
+        artists = []
+        for artist in top_artists:
+            artist_info = {
+                "name": artist['name'],
+                "genres": artist['genres'],
+                "image": artist['images'][0]['url'],
+            }
+            artists.append(artist_info)
+
+        #print("\nTOP ARTISTS:", top_artists)
+        print("CURRENT USER:", username)
+        print("\n\nLIST OF ARTISTS:", artists, "\n\n")
         
 
-        artists = ''
-        genres = ''
-        image_urls = ''
-        for i, item in enumerate(response.get('item')):
-            if i > 0:
-                item += ', '
-            artist = item.get('name')
-            genre = item.get('genres')
-            artists += artist
-            genres += genre
-
-            for i, image in enumerate(item.get('images')):
-                if i > 0:
-                    image += ', '
-                    url = image.get('url')
-                    image_urls += url
-        
-        api_playlist = {
-            "artists":artist,
-            "genres":genres,
-            "image_urls":image_urls
-        }
-
-        print("API PLAYLIST!", api_playlist)
-        return Response(api_playlist, status=status.HTTP_200_OK)
+        return render(request, 'playlist_app/top_artists.html',
+                      {'artists':artists, 'username':username})
+    
+    else:
+        error = "An error occurred with GET"
+        return error

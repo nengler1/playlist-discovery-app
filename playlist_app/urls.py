@@ -19,9 +19,8 @@ urlpatterns = [
     path('accounts/', include('django.contrib.auth.urls')),
     path('accounts/register/', views.registerPage, name='register_page'),
 
-    # API URLS
-    path('auth_url', views.AuthenticationURL.as_view(), name='auth-url'),
-    path('redirect', views.spotify_redirect, name='spotify-redirect'),
-    path('check_auth', views.CheckAuthentication.as_view(), name='check-auth'),
-    path('api_playlist', views.APIPlaylist.as_view(), name='api-playlist'),
+    # API
+    path('spotify/top_artists/', views.get_top_artists, name='get-top-artists'),
+    path('spotify/login/', views.spotify_login, name='spotify-login'),
+    path('spotify/redirect/', views.spotify_redirect, name='spotify-redirect'),
 ]
