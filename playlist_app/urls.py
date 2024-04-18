@@ -17,5 +17,10 @@ urlpatterns = [
 
     #User accounts
     path('accounts/', include('django.contrib.auth.urls')),
-    path('accounts/register/', views.registerPage, name='register_page')
+    path('accounts/register/', views.registerPage, name='register_page'),
+
+    # API
+    path('spotify/top_artists/', views.get_top_artists, name='get-top-artists'),
+    path('spotify/login/', views.spotify_login, name='spotify-login'),
+    path('spotify/redirect/', views.spotify_redirect, name='spotify-redirect'),
 ]

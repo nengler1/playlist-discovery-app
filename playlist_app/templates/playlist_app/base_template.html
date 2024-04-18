@@ -35,6 +35,7 @@
                <a class="nav-link" href="{% url 'register_page' %}?next={{ request.path }}">Register</a>
                <a class="nav-link" href="{% url 'login' %}?next={{ request.path }}">Login</a>
              {% endif %}
+              <a class="nav-link" href="{% url 'spotify-login' %}">Spotify Login</a>
            </div>
          </div>
        </div>
