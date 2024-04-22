@@ -15,7 +15,7 @@ from guardian.decorators import permission_required_or_403
 import spotipy
 from .credentials import *
 from rest_framework.decorators import api_view
-from spotipy.oauth2 import SpotifyOAuth, SpotifyClientCredentials
+from spotipy.oauth2 import SpotifyOAuth
 
 # Create your views here.
 def index(request):
@@ -47,6 +47,7 @@ def create_playlist(request):
         if form.is_valid():
             playlist = form.save(commit=False)
             playlist.save()
+            # Using save_m2m to save from Many to Many
             form.save_m2m()
 
             return redirect('index')
@@ -91,64 +92,78 @@ def playlist_detail(request, pk):
     return render(request, "playlist_app/playlist_detail.html", 
                   {'playlist':playlist})
 
-
-def spotify_login(request):
-    sp_oauth = SpotifyOAuth(
+def spotify_oauth():
+    # Using spotipy to create an OAuth object
+    return SpotifyOAuth(
         client_id=CLIENT_ID,
         client_secret=CLIENT_SECRET,
         redirect_uri=REDIRECT_URI,
-        scope='user-top-read'
+        scope='user-top-read',
+        show_dialog=True,
     )
 
-    print("\nSP_OAUTH OBJECT: ", sp_oauth, "\n")
+def spotify_login(request):
+    sp_oauth = spotify_oauth()
 
+    # Getting the url for the OAuth
     url = sp_oauth.get_authorize_url()
     print("URL:",url)
 
+    # Redirecting user to Spotify Login page
     return HttpResponseRedirect(url)
 
+
 def spotify_redirect(request):
-    sp_oauth = SpotifyOAuth(
-        client_id=CLIENT_ID,
-        client_secret=CLIENT_SECRET,
-        redirect_uri=REDIRECT_URI,
-        scope='user-top-read'
-    )
+    sp_oauth = spotify_oauth()
 
+    # Getting auth code from GET request
     code = request.GET.get("code")
-
+    # Requesting access token using auth code
     token_info = sp_oauth.get_access_token(code)
+
+    # Getting that access token
     access_token = token_info["access_token"]
+    # Storing the access token in our current session (secure way)
     request.session["access_token"] = access_token
 
+    # Redirecting user to the users top artist page
     return HttpResponseRedirect("/spotify/top_artists/")
 
+# Wrapping the function into a function based view ensuring we receive GET request
 @api_view(['GET'])
 def get_top_artists(request):
     if request.method == 'GET':
+
+        # Getting our secured access token from the session
         access_token = request.session.get("access_token")
         print('\nACCESS TOKEN:', access_token, '\n')
-    
+
+        # Creating a Spotipy client with our access token
         sp = spotipy.Spotify(auth=access_token)
 
+        # Getting the user's profile information
         response = sp.me()
-
+        # Checking to see if response was successful or not
         if response is not None:
             print("\nAccess Token is valid.")
         else:
             print("\nAccess Token is invalid or has expired.\n")
         
+        # Getting the username of the user
         username = sp.me()['display_name']
 
+        # Our GET request to the Spotify API
         response = sp.current_user_top_artists(
             limit=15,
             offset=0,
-            time_range="short_term"
+            time_range="long_term"
         )
 
+        # Extracting top artists from JSON (python dictionary)
         top_artists = response["items"]
 
         artists = []
+        # iterating through extracted top artists by name, genres, and their image covers
         for artist in top_artists:
             artist_info = {
                 "name": artist['name'],
@@ -160,11 +175,13 @@ def get_top_artists(request):
         #print("\nTOP ARTISTS:", top_artists)
         print("CURRENT USER:", username)
         print("\n\nLIST OF ARTISTS:", artists, "\n\n")
-        
 
+        # returing the request of artists list to the top_artists html file
+        # (as well as the user's username)
         return render(request, 'playlist_app/top_artists.html',
                       {'artists':artists, 'username':username})
     
+    # If we didn't get the GET request, we return an error message
     else:
         error = "An error occurred with GET"
         return error
