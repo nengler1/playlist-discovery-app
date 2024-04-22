@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponseBadRequest
 from django.views import generic
 from django.contrib import messages
 from playlist_app.models import *
@@ -98,28 +98,25 @@ def spotify_oauth():
         client_id=CLIENT_ID,
         client_secret=CLIENT_SECRET,
         redirect_uri=REDIRECT_URI,
+        state=STATE,
         scope='user-top-read',
         show_dialog=True,
     )
 
 def spotify_login(request):
-    sp_oauth = spotify_oauth()
-
     # Getting the url for the OAuth
-    url = sp_oauth.get_authorize_url()
-    print("URL:",url)
-
+    url = spotify_oauth().get_authorize_url()
     # Redirecting user to Spotify Login page
     return HttpResponseRedirect(url)
 
 
 def spotify_redirect(request):
-    sp_oauth = spotify_oauth()
-
-    # Getting auth code from GET request
+    # Getting auth code from GET request dictionary
     code = request.GET.get("code")
-    # Requesting access token using auth code
-    token_info = sp_oauth.get_access_token(code)
+    #print("\nCODE:", code, "\n")
+
+    # Requesting access token using auth code from get_access_token
+    token_info = spotify_oauth().get_access_token(code)
 
     # Getting that access token
     access_token = token_info["access_token"]
@@ -129,39 +126,46 @@ def spotify_redirect(request):
     # Redirecting user to the users top artist page
     return HttpResponseRedirect("/spotify/top_artists/")
 
-# Wrapping the function into a function based view ensuring we receive GET request
+# Wrapping the function into a Function Based view ensuring we receive GET request
+# From REST Framework
 @api_view(['GET'])
 def get_top_artists(request):
     if request.method == 'GET':
 
-        # Getting our secured access token from the session
-        access_token = request.session.get("access_token")
-        print('\nACCESS TOKEN:', access_token, '\n')
+        # Getting our secured access token from the session in request (dictionary)
+        # This is saved locally as .cache file
+        access_token = request.session["access_token"]
+        print('\nACCESS TOKEN:', access_token)
+
+        # Handle missing access token error
+        if not access_token:
+            error = "Access token is missing"
+            return HttpResponseBadRequest(error)
 
         # Creating a Spotipy client with our access token
         sp = spotipy.Spotify(auth=access_token)
 
         # Getting the user's profile information
         response = sp.me()
+        username = ""
         # Checking to see if response was successful or not
         if response is not None:
             print("\nAccess Token is valid.")
+
+            username = response["display_name"]
+            print("CURRENT USER:", username)
         else:
             print("\nAccess Token is invalid or has expired.\n")
-        
-        # Getting the username of the user
-        username = sp.me()['display_name']
 
-        # Our GET request to the Spotify API
+        # Our GET request to the Spotify API for the JSON Object
         response = sp.current_user_top_artists(
-            limit=15,
+            limit=10,
             offset=0,
             time_range="long_term"
         )
 
         # Extracting top artists from JSON (python dictionary)
         top_artists = response["items"]
-
         artists = []
         # iterating through extracted top artists by name, genres, and their image covers
         for artist in top_artists:
@@ -172,9 +176,7 @@ def get_top_artists(request):
             }
             artists.append(artist_info)
 
-        #print("\nTOP ARTISTS:", top_artists)
-        print("CURRENT USER:", username)
-        print("\n\nLIST OF ARTISTS:", artists, "\n\n")
+        print("\nLIST OF ARTISTS:", artists, "\n\n")
 
         # returing the request of artists list to the top_artists html file
         # (as well as the user's username)
@@ -183,5 +185,5 @@ def get_top_artists(request):
     
     # If we didn't get the GET request, we return an error message
     else:
-        error = "An error occurred with GET"
-        return error
+        error = "An error occurred with GET request. Unsupported request method used."
+        return HttpResponseBadRequest(error)
