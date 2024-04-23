@@ -53,6 +53,7 @@ def create_playlist(request):
             return redirect('index')
     return render(request, 'playlist_app/create_playlist.html', {'form': form})
 
+@login_required(login_url='login')
 def update_playlist(request, pk):
     playlist = Playlist.objects.get(id=pk)
 
@@ -70,6 +71,7 @@ def update_playlist(request, pk):
     return render(request, 'playlist_app/update_playlist.html', 
                   {'form': form, 'pk':pk})
 
+@login_required(login_url='login')
 def delete_playlist(request, pk):
     playlist = Playlist.objects.get(id=pk)
     print("PLAYLIST TO DELETE", playlist)
@@ -86,7 +88,7 @@ class PlaylistListView(generic.ListView):
     context_object_name = 'playlist_list'
     template_name = 'playlist_app/playlist_list.html'
 
-@login_required(login_url='login')
+
 def playlist_detail(request, pk):
     playlist = Playlist.objects.get(id=pk)
     return render(request, "playlist_app/playlist_detail.html", 
