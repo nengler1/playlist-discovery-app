@@ -42,11 +42,12 @@ def create_playlist(request):
     form = PlaylistForm()
     if request.method == 'POST':
         form = PlaylistForm(request.POST, request.FILES)
-        print('REQUEST:', request.POST)
+        print('\nPOST:', request.POST)
+        print('\nFILES:', request.FILES, '\n')
         if form.is_valid():
             playlist = form.save(commit=False)
-            print('PLAYLIST:', playlist)
             playlist.user = request.user
+            print('PLAYLIST:', playlist)
             playlist.save()
             # Using save_m2m to save from Many to Many
             form.save_m2m()
