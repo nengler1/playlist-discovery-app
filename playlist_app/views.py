@@ -7,9 +7,7 @@ from playlist_app.forms import *
 
 # Authentication
 from django.contrib.auth.decorators import login_required
-from .decorators import allowed_users
-from guardian.shortcuts import assign_perm, get_objects_for_user
-from guardian.decorators import permission_required_or_403
+from .decorators import *
 
 # API
 import spotipy
@@ -44,8 +42,11 @@ def create_playlist(request):
     form = PlaylistForm()
     if request.method == 'POST':
         form = PlaylistForm(request.POST, request.FILES)
+        print('REQUEST:', request.POST)
         if form.is_valid():
             playlist = form.save(commit=False)
+            print('PLAYLIST:', playlist)
+            playlist.user = request.user
             playlist.save()
             # Using save_m2m to save from Many to Many
             form.save_m2m()
@@ -54,6 +55,7 @@ def create_playlist(request):
     return render(request, 'playlist_app/create_playlist.html', {'form': form})
 
 @login_required(login_url='login')
+@user_is_owner()
 def update_playlist(request, pk):
     playlist = Playlist.objects.get(id=pk)
 
@@ -72,6 +74,7 @@ def update_playlist(request, pk):
                   {'form': form, 'pk':pk})
 
 @login_required(login_url='login')
+@user_is_owner()
 def delete_playlist(request, pk):
     playlist = Playlist.objects.get(id=pk)
     print("PLAYLIST TO DELETE", playlist)
@@ -87,7 +90,6 @@ class PlaylistListView(generic.ListView):
     model = Playlist
     context_object_name = 'playlist_list'
     template_name = 'playlist_app/playlist_list.html'
-
 
 def playlist_detail(request, pk):
     playlist = Playlist.objects.get(id=pk)

@@ -1,17 +1,27 @@
-from django.http import HttpResponse
 from django.shortcuts import redirect
+from django.contrib import messages
+from .models import *
 
 # creating decorators
-def allowed_users(allowed_roles=[]):
+def user_is_owner():
     def decorator(view_func):
         def wrapper_func(request, *args, **kwargs):
-            print('role', allowed_roles)
-            group = None
-            if request.user.groups.exists():
-                group = request.user.groups.all()[0].name
-            if group in allowed_roles:
+            # kwargs holds playlist pk
+            print('KWARGS:', kwargs)
+            # Getting the user from request
+            user = request.user
+            print('USER:',user,'\n')
+            print('USER STAFF:',user.is_staff,'\n')
+            pk = kwargs['pk']
+            # Getting playlist associated with user
+            playlist = Playlist.objects.get(id=pk)
+            print(playlist.user)
+
+            # Seeing if the user is the user associated with playlist
+            if user == playlist.user or user.is_staff == True:
                 return view_func(request, *args, **kwargs)
             else:
-                return HttpResponse('You are not authorized to view this page')
+                messages.warning(request, 'You are not authorized to perform that action')
+                return redirect('playlist-detail', pk)
         return wrapper_func
     return decorator
