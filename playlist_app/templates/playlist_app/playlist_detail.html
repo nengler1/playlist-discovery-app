@@ -5,6 +5,13 @@
 <!-- Replace block content in base_template.html -->
 {% block content %}
     <h1>Playlist Details</h1>
+    {% for message in messages %}
+        <div class="alert alert-warning alert-dismissible fade show" style="width: 40%;" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endfor %}
+
     {% if playlist.cover %}
         <div class="col-md-4">
             <p class="fs-5 text-break"><strong>Cover:</strong></p>
@@ -24,6 +31,9 @@
         {% for artist in playlist.artists.all %}
             {{ artist.name }}{% if not forloop.last %}, {% endif %}
         {% endfor %}
+    </p>
+    <p class="fs-5 text-break">
+        <strong>User: </strong>{{ playlist.user }}
     </p>
     <a href="{% url 'update-playlist' playlist.pk %}" class="btn btn-primary">Update Playlist</a>
     <a href="{% url 'delete-playlist' playlist.pk %}" class="btn btn-danger">Delete Playlist</a>

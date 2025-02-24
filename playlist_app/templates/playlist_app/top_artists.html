@@ -1,0 +1,24 @@
+<!-- inherit from base.html-->
+{% extends "playlist_app/base_template.html" %}
+
+<!-- Replace block content in base_template.html -->
+{% block content %}
+    <h1>{{ username }}'s Top Artists</h1>
+    <div class="row row-cols-1 row-cols-md-4 g-4">
+        {% for artist in artists %}
+            <div class="col">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <img src="{{ artist.image }}" class="rounded card-img" alt="{{ artist.name }} Cover" style="width: 50%; padding-bottom: 10px">
+                        <p class="card-text fs-5 text-break"><strong>Name: </strong>{{ artist.name }}</p>
+                        <p class="card-text fs-5 text-break"><strong>Genres: </strong>
+                            {% for genre in artist.genres %}
+                                {{ genre }}{% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

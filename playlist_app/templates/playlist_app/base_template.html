@@ -7,7 +7,7 @@
    <title>Music Discovery App</title>
    <meta charset="utf-8">
    <meta name="viewport" content="width=device-width, initial-scale=1">
-   <link rel="icon" type="image/png" href="/uploads/icon/musical-note-256.png" sizes="16x16" />
+   <link rel="icon" type="image/png" href="/uploads/icon/musical-note-256.png" sizes="16x16"/>
    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
  </head>
 
@@ -26,10 +26,19 @@
          </button>
          <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
            <div class="navbar-nav">
-             <!--  {% url 'index' %}  is defined in url path to dynamically create url -->
-             <a class="nav-link active" aria-current="page" href="{% url 'index' %}">Home</a>
-             <a class="nav-link" href="{% url 'playlists' %}">Playlist List</a>
-             <a class="nav-link" href="#">Menu 3</a>
+              <!--  {% url 'index' %}  is defined in url path to dynamically create url -->
+              <a class="nav-link active" aria-current="page" href="{% url 'index' %}">Home</a>
+              <a class="nav-link" href="{% url 'playlists' %}">Playlist List</a>
+              {% if user.is_authenticated %}
+                <a class="nav-link" href="{% url 'logout' %}?next={{ request.path }}">Logout {{user}}</a>
+                {% if user.is_staff %}
+                  <a class="nav-link" href="../admin/">Admin Page</a>
+                {% endif %}
+             {% else %}
+               <a class="nav-link" href="{% url 'register_page' %}?next={{ request.path }}">Register</a>
+               <a class="nav-link" href="{% url 'login' %}?next={{ request.path }}">Login</a>
+             {% endif %}
+              <a class="nav-link" href="{% url 'spotify-login' %}">Spotify Login</a>
            </div>
          </div>
        </div>
